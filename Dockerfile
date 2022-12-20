@@ -30,6 +30,9 @@ RUN rm devkitPPC-r35-1-linux.pkg.tar.xz && \
     rm devkitARM-r53-1-linux.pkg.tar.xz && \
     rm libogc-1.8.23-1-any.pkg.tar.xz
 
+WORKDIR /build
+VOLUME /build
+
 # ENV DEVKITPPC=${DEVKITPRO}/devkitPPC
 # ENV DEVKITARM=/opt/devkitpro/devkitARM
 
