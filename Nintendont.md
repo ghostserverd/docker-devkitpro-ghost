@@ -98,8 +98,36 @@ So maybe there's something about the injection / autoboot process that's going w
 
 > 📓 I'm going to focus on TeconMoon's Wii VC injector. There are other injectors (e.g. `UWUVCI` and I believe `Wii U USB Helper` has some injection capabilities), but I'm most familiar with TeconMoon's at the moment. Also TeconMoon's injector supports custom forwarders which is important for helping us fix the issue with `WiiUGamepadSlot` and `autoboot`.
 
-There is a ton of detail I'm going to skip over related to Wii VC injection (mostly because I don't actually know all of the details), but for our purposes and from a very high level
+There is a ton of detail I'm going to skip over related to Wii VC injection (mostly because I don't actually know all of the details), but for our purposes and at a very high level, an injector creates an installable file or files (likely WUP format) that you can install as a Title to your Wii U Home Menu (using e.g. WUP Installer) , which places an icon on your Wii U home page to launch some application (in our case it needs to launch the Wii VC with a GCN game and `Nintendont`).
+
+We need _something_ to tell `Nintendont` to automatically launch a game instead of booting to the `Nintendont` menu. E.g.
 
 ```
-forwarder for Wii VC to autoboot a included game
+a forwarder for Wii VC to autoboot an included game
 ```
+
+Enter [`nintendont-autoboot-forwarder`](https://github.com/FIX94/nintendont-autoboot-forwarder).
+
+Now I don't know all of the technical details, but from what I can gather, TeconMoon's injector uses this forwarder to build the injector. If you download the [TOOLDIR](https://github.com/piratesephiroth/TeconmoonWiiVCInjector/blob/main/TeconMoon's%20WiiVC%20Injector/Resources/TOOLDIR.zip) from the source and unzip it, you'll find compiled `dol` files from the [releases](https://github.com/FIX94/nintendont-autoboot-forwarder/releases/tag/v1.2) page of `nintendont-autoboot-forwarder`.
+
+We want to know exactly what the forwarder is doing, so it is int
+
+If we go look at the [`main.c`](https://github.com/FIX94/nintendont-autoboot-forwarder/blob/master/source/main.c) file, we can see a couple things
+
+1. It [reads nincfg.bin from the sd card](https://github.com/FIX94/nintendont-autoboot-forwarder/blob/master/source/main.c#L77) (kind of like how [`Nintendont` does](https://github.com/FIX94/Nintendont/blob/master/loader/source/global.c#L328))
+    ```
+    f = fopen("sd:/nincfg.bin","rb");
+    ```
+
+2. It [loads the contents of the file into memory](https://github.com/FIX94/nintendont-autoboot-forwarder/blob/master/source/main.c#L85) (similar to how [`Nintendont` does](https://github.com/FIX94/Nintendont/blob/master/loader/source/global.c#L333))
+    ```
+    fread(&nincfg,1,sizeof(NIN_CFG),f);
+    ```
+
+3. And then after potentially making some changes to the config (e.g. disabling all widescreen bits), it [writes the config bytes back to some memory address](https://github.com/FIX94/nintendont-autoboot-forwarder/blob/master/source/main.c#L110) for `Nintendont` to eventually [read from](https://github.com/FIX94/Nintendont/blob/master/loader/source/main.c#L573).
+    ```
+    memcpy(CMD_ADDR+full_fPath_len, &nincfg, sizeof(NIN_CFG));
+    ```
+
+> 📓 Notice how we're consistently using `sizeof(NIN_CFG)` to determine how many bytes to read in and out of memory. This is the crux of the problem.
+
