@@ -52,7 +52,7 @@ In 2018, a [request](https://github.com/FIX94/Nintendont/issues/620) was made in
 
 3 years later, a [PR](https://github.com/FIX94/Nintendont/pull/887) was opened to allow choosing the controller slot for the Wii U Gamepad. This added a new configuration for `Nintendont` called `WiiUGamepadSlot` in the `nincfg.bin` format.
 
-After that change was made, it was determined that it had introduced a bug where the Wii U Gamepad was disabled when `Nintendont` was in `autoboot` mode. A [workaround](https://github.com/FIX94/Nintendont/commit/fd5e85c4fe4c4015936e21b16242fa0f15449e99) was put into place to always make the `WiiUGamepadSlot` be 0 if it was detected that `Nintendont` was running in `autoboot` mode.
+After that change was made, it was determined that it had introduced a bug where the Wii U Gamepad was disabled when `Nintendont` was in `autoboot` mode. So a [workaround](https://github.com/FIX94/Nintendont/commit/fd5e85c4fe4c4015936e21b16242fa0f15449e99) was introduced to always make the `WiiUGamepadSlot` be 0 if it was detected that `Nintendont` was running in `autoboot` mode.
 
 ```
 if (((NIN_CFG*)0x93004000)->Config & NIN_CFG_AUTO_BOOT)
