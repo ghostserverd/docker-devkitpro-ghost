@@ -121,7 +121,21 @@ typedef struct NIN_CFG
 
 In `normal` mode (i.e. not `autoboot` / injected mode, i.e. starting a game from the `Nintendont` menu) `Nintendont` [loads](https://github.com/FIX94/Nintendont/blob/fd5e85c4fe4c4015936e21b16242fa0f15449e99/loader/source/global.c#L333) `sizeof(NIN_CFG)` bytes of the `nincfg.bin` file into a memory block that is the same size as the `NIN_CFG` struct.
 
+```c
+FIL cfg;
+if (f_open_char(&cfg, "/nincfg.bin", FA_READ|FA_OPEN_EXISTING) != FR_OK)
+	return false;
+
+// Read the configuration file into memory.
+UINT BytesRead;
+f_read(&cfg, ncfg, sizeof(NIN_CFG), &BytesRead);
+```
+
 In `autoboot` mode, whatever is initializing `Nintendont` (the forwarder) passes the `NIN_CFG` bytes as an argument, and `Nintendont` [copies](https://github.com/FIX94/Nintendont/blob/d64d0da20d5db8326539c07f5898b8601131095c/loader/source/main.c#L573) those bytes into a memory block that is the same size as the `NIN_CFG` struct.
+
+```c
+memcpy(ncfg, argv[1], sizeof(NIN_CFG));
+```
 
 > 📓 This is another critical difference in functionality that hints at why `WiiUGamepadSlot` works in `normal` mode but not `autoboot` mode.
 
@@ -259,8 +273,8 @@ Now that we're (somewhat?) up to speed on configuring and autobooting `Nintendon
 
 ### `Nintendont`
 
-4. When `Nintendont` loads `NIN_CFG` from memory in autoboot mode, it copies `sizeo(NIN_CFG_10)` bytes from memory. That means it's copying an extra 4 bytes that were never written by the forwarder. When this happens, it is `UNDEFINED BEHAVIOR` (scary) which basically means "who knows what happens". I think what's most likely is that whatever bytes are in memory at those next memory addresses are copied into the 4 bytes of the `WiiUGamepadSlot`, so it likely is some value between 0 and 4,294,967,295. Now I don't think `Nintendont` is really equiped to handle a couple billion controllers, so it breaks in unexpected ways (like causing the Wii U Gamepad to be disabled all together).
-5. When `Nintendont` goes to apply a backwards compatibility fix (and set `WiiUGamepadSlot` to something more sane, like 0, it sees that the config file is version `10`, so it skips that logic.
+4. When `Nintendont` loads `NIN_CFG` from memory in autoboot mode, it copies `sizeof(NIN_CFG_10)` bytes from memory. That means it's copying an extra 4 bytes that were never written by the forwarder. When this happens, it is `UNDEFINED BEHAVIOR` (scary) which basically means "who knows what happens". I think what's most likely is that whatever bytes are in memory at those next memory addresses are copied into the 4 bytes of the `WiiUGamepadSlot`, so it likely is some value between 0 and 4,294,967,295. Now I don't think `Nintendont` is really equiped to handle a couple billion controllers, so it breaks in unexpected ways (like causing the Wii U Gamepad to be disabled all together).
+5. When `Nintendont` goes to apply a backwards compatibility fix (and set `WiiUGamepadSlot` to something more sane, like 0) it sees that the config file is version `10`, so it skips that logic.
 
 So in autoboot mode, `Nintendont` ends up with a `NIN_CFG` that has garbage bytes for `WiiUGamepadSlot`. If we can fix this, I can accomplish all of my goals, and finally beat my time trial record on Baby Park from 10 years ago.
 
