@@ -1,21 +1,21 @@
 [B][SIZE=7]TLDR[/SIZE][/B]
 
-I have two PRs that will enable the [FONT=monospace]WiiUGamepadSlot[/FONT] feature for injected / autoboot games with [FONT=monospace]Nintendont[/FONT]. I'm sending out a flare to find whomever might be able to review those PRs so we can get this feature enabled for those who want to use it.
+I have two PRs that will enable the [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] feature for injected / autoboot games with [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT]. I'm sending out a flare to find whomever might be able to review those PRs so we can get this feature enabled for those who want to use it.
 
 [LIST=1]
-[*][FONT=monospace]Nintendont[/FONT] PR is here
+[*][FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] PR is here
 [/LIST]
 
 https://github.com/FIX94/Nintendont/pull/1054
 
 [LIST]
-[*][FONT=monospace]nintendont-autoboot-forwarder[/FONT] PR is here
+[*][FONT=monospace][ICODE]nintendont-autoboot-forwarder[/ICODE][/FONT] PR is here
 [/LIST]
 
 https://github.com/FIX94/nintendont-autoboot-forwarder/pull/7
 
 
-Then we can go about getting the injectors (TeconMoon's, UWUVCI, Wii U USB Helper) updated so everyone can configure their [FONT=monospace]WiiUGamepadSlot[/FONT] to their heart's content.
+Then we can go about getting the injectors (TeconMoon's, UWUVCI, Wii U USB Helper) updated so everyone can configure their [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] to their heart's content.
 
 
 A medium-deep dive and explanation for these changes is below.
@@ -28,7 +28,7 @@ My personal goal for my Wii U is to essentially turn it into a Gamecube. I want 
 The requirements I set for myself for this project are:
 
 [LIST=1]
-[*]Launch Gamecube games directly from the Wii U Home Menu (injected [FONT=monospace]Nintendont[/FONT] autoboot).
+[*]Launch Gamecube games directly from the Wii U Home Menu (injected [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] autoboot).
 [*]Launch a game, play it, quit the game with the Wii U Pro Controller (without picking up the Wii U Gamepad or a Wiimote).
 [*]Be able to use the Wii U Gamepad as a controller if necessary (to support additional players).
 [/LIST]
@@ -36,42 +36,42 @@ The requirements I set for myself for this project are:
 Some games (e.g. Super Smash Bros Melee) don't really care which slot a controller is in, but for other games (e.g. Mario Kart Double Dash) the first controller is the only one that can navigate the menu.
 
 
-This means that in order to accomplish requirement 2, I need to be able to be able to configure [FONT=monospace]Nintendont[/FONT] to assign a Wii U Pro Controller as the first controller.
+This means that in order to accomplish requirement 2, I need to be able to be able to configure [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] to assign a Wii U Pro Controller as the first controller.
 
 
-After setting up my Wii U with Tiramisu and installing [FONT=monospace]Nintendont[/FONT], I discovered 2 things:
+After setting up my Wii U with Tiramisu and installing [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT], I discovered 2 things:
 
 [LIST=1]
-[*]:lol:There is a setting in [FONT=monospace]Nintendont[/FONT] called [FONT=monospace]WiiUGamepadSlot[/FONT] to configure which controller slot the Wii U Gamepad occupies.
+[*]:lol:There is a setting in [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] called [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] to configure which controller slot the Wii U Gamepad occupies.
 [*]:sad: The setting does not work for games installed with an injector and launched from the Wii U Home Menu.
 [/LIST]
 
-I did notice that when launching [FONT=monospace]Nintendont[/FONT] first and then starting a game from within [FONT=monospace]Nintendont[/FONT], the Wii U Gamepad would be in the slot defined by [FONT=monospace]WiiUGamepadSlot[/FONT]. So that setting worked. It only stopped working when launching a game injected and then installed to the Wii U Home Menu.
+I did notice that when launching [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] first and then starting a game from within [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT], the Wii U Gamepad would be in the slot defined by [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT]. So that setting worked. It only stopped working when launching a game injected and then installed to the Wii U Home Menu.
 
 
-I beat my head against a wall trying a bunch of different things to get it to work (different builds of TeconMoon's injector, different injectors alltogether, different config files, different builds of [FONT=monospace]Nintendont[/FONT]), but no matter what I tried, the Wii U Gamepad always took up the first controller slot.
+I beat my head against a wall trying a bunch of different things to get it to work (different builds of TeconMoon's injector, different injectors alltogether, different config files, different builds of [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT]), but no matter what I tried, the Wii U Gamepad always took up the first controller slot.
 
 
-I was almost resigned to just launching games directly from [FONT=monospace]Nintendont[/FONT], but I was just too obsessed with playing ATV 2 Quad Power Racing without using the Wii U Gamepad, so I set out to try to figure out how I could get this to work.
+I was almost resigned to just launching games directly from [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT], but I was just too obsessed with playing ATV 2 Quad Power Racing without using the Wii U Gamepad, so I set out to try to figure out how I could get this to work.
 
 
 This is a chronicle of the fixes I implemented, the things I learned along the way, and at the end, a call to action to hopefully get this fixed for the community once and for all.
 
 
-First, some background about the [FONT=monospace]WiiUGamepadSlot[/FONT] setting.
+First, some background about the [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] setting.
 
 [B][SIZE=7]WiiUGamepadSlot[/SIZE][/B]
 
-In 2018, a [URL='https://github.com/FIX94/Nintendont/issues/620']request[/URL] was made in the [FONT=monospace]Nintendont[/FONT] repo to allow disabling the Wii U Gamepad or choosing its controller slot. Eventually someone made a [URL='https://github.com/NazarSurm/Nintendont---No-gamepad-on-Player-1#']fork[/URL] of [FONT=monospace]Nintendont[/FONT] with a [URL='https://github.com/FIX94/Nintendont/commit/3decbfaeed21e21f28259e015c95a77f6116a8d0']change[/URL] to disable the gamepad entirely.
+In 2018, a [URL='https://github.com/FIX94/Nintendont/issues/620']request[/URL] was made in the [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] repo to allow disabling the Wii U Gamepad or choosing its controller slot. Eventually someone made a [URL='https://github.com/NazarSurm/Nintendont---No-gamepad-on-Player-1#']fork[/URL] of [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] with a [URL='https://github.com/FIX94/Nintendont/commit/3decbfaeed21e21f28259e015c95a77f6116a8d0']change[/URL] to disable the gamepad entirely.
 
 [QUOTE]
 :yayu: This actually helps get me pretty dang close to my goals, except for the 3rd one. And I almost just stopped here with the intention of buying more Pro Controllers so I wouldn't have to use the Gamepad at all.
 [/QUOTE]
 
-3 years later, a [URL='https://github.com/FIX94/Nintendont/pull/887']PR[/URL] was opened to allow choosing the controller slot for the Wii U Gamepad. This added a new configuration for [FONT=monospace]Nintendont[/FONT] called [FONT=monospace]WiiUGamepadSlot[/FONT] in the [FONT=monospace]nincfg.bin[/FONT] format.
+3 years later, a [URL='https://github.com/FIX94/Nintendont/pull/887']PR[/URL] was opened to allow choosing the controller slot for the Wii U Gamepad. This added a new configuration for [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] called [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] in the [FONT=monospace][ICODE]nincfg.bin[/ICODE][/FONT] format.
 
 
-After that change was made, it was determined that it had introduced a bug where the Wii U Gamepad was disabled when [FONT=monospace]Nintendont[/FONT] was in [FONT=monospace]autoboot[/FONT] mode. So a [URL='https://github.com/FIX94/Nintendont/commit/fd5e85c4fe4c4015936e21b16242fa0f15449e99']workaround[/URL] was introduced to always make the [FONT=monospace]WiiUGamepadSlot[/FONT] be 0 if it was detected that [FONT=monospace]Nintendont[/FONT] was running in [FONT=monospace]autoboot[/FONT] mode.
+After that change was made, it was determined that it had introduced a bug where the Wii U Gamepad was disabled when [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] was in [FONT=monospace][ICODE]autoboot[/ICODE][/FONT] mode. So a [URL='https://github.com/FIX94/Nintendont/commit/fd5e85c4fe4c4015936e21b16242fa0f15449e99']workaround[/URL] was introduced to always make the [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] be 0 if it was detected that [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] was running in [FONT=monospace][ICODE]autoboot[/ICODE][/FONT] mode.
 
 [code=c]
 if (((NIN_CFG*)0x93004000)->Config & NIN_CFG_AUTO_BOOT)
@@ -83,31 +83,31 @@ if (((NIN_CFG*)0x93004000)->Config & NIN_CFG_AUTO_BOOT)
 }
 [/code]
 
-It's a good catch to make sure [FONT=monospace]Nintendont[/FONT] can handle the various different controller configurations that people have. It does mean that when in [FONT=monospace]autoboot[/FONT] mode, [FONT=monospace]WiiUGamepadSlot[/FONT] will never work!
+It's a good catch to make sure [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] can handle the various different controller configurations that people have. It does mean that when in [FONT=monospace][ICODE]autoboot[/ICODE][/FONT] mode, [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] will never work!
 
 [QUOTE]
-:yayu: This is the first real clue about how there are different code paths for [FONT=monospace]autoboot[/FONT] vs [FONT=monospace]normal[/FONT] mode and where we might be able to implement a fix.
+:yayu: This is the first real clue about how there are different code paths for [FONT=monospace][ICODE]autoboot[/ICODE][/FONT] vs [FONT=monospace][ICODE]normal[/ICODE][/FONT] mode and where we might be able to implement a fix.
 [/QUOTE]
 
-Let's look at how [FONT=monospace]Nintendont[/FONT] configuration works next. Maybe that will provide some additional insight.
+Let's look at how [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] configuration works next. Maybe that will provide some additional insight.
 
 [B][SIZE=7]Nintendont configuration[/SIZE]
 [SIZE=6]nincfg.bin[/SIZE][/B]
 
-[FONT=monospace]Nintendont[/FONT] requires a [FONT=monospace]nincfg.bin[/FONT] file in the root of your SD card to define its configuration.
+[FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] requires a [FONT=monospace][ICODE]nincfg.bin[/ICODE][/FONT] file in the root of your SD card to define its configuration.
 
 
-From what I can tell, the [FONT=monospace]nincfg.bin[/FONT] file format is simply a binary representation of the [FONT=monospace]NIN_CFG[/FONT] struct defined in [FONT=monospace]Nintendont[/FONT] in [URL='https://github.com/FIX94/Nintendont/blob/master/common/include/CommonConfig.h#L12'][FONT=monospace]common/include/CommonConfig.h[/FONT][/URL].
+From what I can tell, the [FONT=monospace][ICODE]nincfg.bin[/ICODE][/FONT] file format is simply a binary representation of the [FONT=monospace][ICODE]NIN_CFG[/ICODE][/FONT] struct defined in [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] in [URL='https://github.com/FIX94/Nintendont/blob/master/common/include/CommonConfig.h#L12'][FONT=monospace][ICODE]common/include/CommonConfig.h[/ICODE][/FONT][/URL].
 
 
-When you launch [FONT=monospace]Nintendont[/FONT], change any setting, and start a game, it updates the [FONT=monospace]nincfg.bin[/FONT] with your changed configuration.
+When you launch [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT], change any setting, and start a game, it updates the [FONT=monospace][ICODE]nincfg.bin[/ICODE][/FONT] with your changed configuration.
 
 [QUOTE]
-:yayu: There is also a tool called [URL='https://github.com/libertyernie/Nicoe']Nicoe[/URL] which can read and modify a [FONT=monospace]nincfg.bin[/FONT] file from a Windows PC (and without having to launch [FONT=monospace]Nintendont[/FONT] on a Wii U).
+:yayu: There is also a tool called [URL='https://github.com/libertyernie/Nicoe']Nicoe[/URL] which can read and modify a [FONT=monospace][ICODE]nincfg.bin[/ICODE][/FONT] file from a Windows PC (and without having to launch [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] on a Wii U).
 [/QUOTE]
 [B][SIZE=6]Initializing NIN_CFG[/SIZE][/B]
 
-The [FONT=monospace]NIN_CFG[/FONT] struct [URL='https://github.com/FIX94/Nintendont/blob/master/common/include/CommonConfig.h#L12']defines[/URL] the settings and format for configuring [FONT=monospace]Nintendont[/FONT].
+The [FONT=monospace][ICODE]NIN_CFG[/ICODE][/FONT] struct [URL='https://github.com/FIX94/Nintendont/blob/master/common/include/CommonConfig.h#L12']defines[/URL] the settings and format for configuring [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT].
 
 [code=c]
 #ifndef __COMMON_CONFIG_H__
@@ -141,7 +141,7 @@ typedef struct NIN_CFG
 ...
 [/code]
 
-In [FONT=monospace]normal[/FONT] mode (i.e. not [FONT=monospace]autoboot[/FONT] / injected mode, i.e. starting a game from the [FONT=monospace]Nintendont[/FONT] menu) [FONT=monospace]Nintendont[/FONT] [URL='https://github.com/FIX94/Nintendont/blob/fd5e85c4fe4c4015936e21b16242fa0f15449e99/loader/source/global.c#L333']loads[/URL] [FONT=monospace]sizeof(NIN_CFG)[/FONT] bytes of the [FONT=monospace]nincfg.bin[/FONT] file into a memory block that is the same size as the [FONT=monospace]NIN_CFG[/FONT] struct.
+In [FONT=monospace][ICODE]normal[/ICODE][/FONT] mode (i.e. not [FONT=monospace][ICODE]autoboot[/ICODE][/FONT] / injected mode, i.e. starting a game from the [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] menu) [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] [URL='https://github.com/FIX94/Nintendont/blob/fd5e85c4fe4c4015936e21b16242fa0f15449e99/loader/source/global.c#L333']loads[/URL] [FONT=monospace][ICODE]sizeof(NIN_CFG)[/ICODE][/FONT] bytes of the [FONT=monospace][ICODE]nincfg.bin[/ICODE][/FONT] file into a memory block that is the same size as the [FONT=monospace][ICODE]NIN_CFG[/ICODE][/FONT] struct.
 
 [code=c]FIL cfg;
 if (f_open_char(&cfg, "/nincfg.bin", FA_READ|FA_OPEN_EXISTING) != FR_OK)
@@ -152,16 +152,16 @@ UINT BytesRead;
 f_read(&cfg, ncfg, sizeof(NIN_CFG), &BytesRead);
 [/code]
 
-In [FONT=monospace]autoboot[/FONT] mode, whatever is initializing [FONT=monospace]Nintendont[/FONT] (the forwarder) passes the [FONT=monospace]NIN_CFG[/FONT] bytes as an argument, and [FONT=monospace]Nintendont[/FONT] [URL='https://github.com/FIX94/Nintendont/blob/d64d0da20d5db8326539c07f5898b8601131095c/loader/source/main.c#L573']copies[/URL] those bytes into a memory block that is the same size as the [FONT=monospace]NIN_CFG[/FONT] struct.
+In [FONT=monospace][ICODE]autoboot[/ICODE][/FONT] mode, whatever is initializing [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] (the forwarder) passes the [FONT=monospace][ICODE]NIN_CFG[/ICODE][/FONT] bytes as an argument, and [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] [URL='https://github.com/FIX94/Nintendont/blob/d64d0da20d5db8326539c07f5898b8601131095c/loader/source/main.c#L573']copies[/URL] those bytes into a memory block that is the same size as the [FONT=monospace][ICODE]NIN_CFG[/ICODE][/FONT] struct.
 
 [code=c]memcpy(ncfg, argv[1], sizeof(NIN_CFG));
 [/code]
 [QUOTE]
-:yayu: This is another critical difference in functionality that hints at why [FONT=monospace]WiiUGamepadSlot[/FONT] works in [FONT=monospace]normal[/FONT] mode but not [FONT=monospace]autoboot[/FONT] mode.
+:yayu: This is another critical difference in functionality that hints at why [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] works in [FONT=monospace][ICODE]normal[/ICODE][/FONT] mode but not [FONT=monospace][ICODE]autoboot[/ICODE][/FONT] mode.
 [/QUOTE]
 [B][SIZE=6]Versioning and backwards compatibility[/SIZE][/B]
 
-[FONT=monospace]Nintendont[/FONT] makes some provisions to sanitize config files that may not be fully up-to-date with the latest version of the config format. The [FONT=monospace]NIN_CFG[/FONT] struct contains a [FONT=monospace]Version[/FONT] [URL='https://github.com/FIX94/Nintendont/blob/c0e97a5efba3c3d184d7c20d6036916b2877703b/common/include/CommonConfig.h#L15']property[/URL], and when [FONT=monospace]Nintendont[/FONT] detects that the version of the config that was loaded is [URL='https://github.com/FIX94/Nintendont/blob/fd5e85c4fe4c4015936e21b16242fa0f15449e99/loader/source/global.c#L417']older than the current version[/URL], it sets some defaults for properties that did not exist in previous versions and updates the [FONT=monospace]Version[/FONT] in the struct to the latest.
+[FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] makes some provisions to sanitize config files that may not be fully up-to-date with the latest version of the config format. The [FONT=monospace][ICODE]NIN_CFG[/ICODE][/FONT] struct contains a [FONT=monospace][ICODE]Version[/ICODE][/FONT] [URL='https://github.com/FIX94/Nintendont/blob/c0e97a5efba3c3d184d7c20d6036916b2877703b/common/include/CommonConfig.h#L15']property[/URL], and when [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] detects that the version of the config that was loaded is [URL='https://github.com/FIX94/Nintendont/blob/fd5e85c4fe4c4015936e21b16242fa0f15449e99/loader/source/global.c#L417']older than the current version[/URL], it sets some defaults for properties that did not exist in previous versions and updates the [FONT=monospace][ICODE]Version[/ICODE][/FONT] in the struct to the latest.
 
 
 The important thing to note for our purposes is this:
@@ -172,38 +172,38 @@ The important thing to note for our purposes is this:
   }
 [/code]
 
-The [URL='https://github.com/FIX94/Nintendont/blob/c0e97a5efba3c3d184d7c20d6036916b2877703b/common/include/CommonConfig.h#L8']current version[/URL] of [FONT=monospace]NIN_CFG[/FONT] is [FONT=monospace]10[/FONT] ([FONT=monospace]0xA[/FONT] in hex)
+The [URL='https://github.com/FIX94/Nintendont/blob/c0e97a5efba3c3d184d7c20d6036916b2877703b/common/include/CommonConfig.h#L8']current version[/URL] of [FONT=monospace][ICODE]NIN_CFG[/ICODE][/FONT] is [FONT=monospace][ICODE]10[/ICODE][/FONT] ([FONT=monospace][ICODE]0xA[/ICODE][/FONT] in hex)
 
 
-If the [FONT=monospace]Version[/FONT] in the [FONT=monospace]NIN_CFG[/FONT] struct is [FONT=monospace]9[/FONT], [FONT=monospace]WiiUGamepadSlot[/FONT] gets initialized to 0.
+If the [FONT=monospace][ICODE]Version[/ICODE][/FONT] in the [FONT=monospace][ICODE]NIN_CFG[/ICODE][/FONT] struct is [FONT=monospace][ICODE]9[/ICODE][/FONT], [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] gets initialized to 0.
 
 
-So the expectation is that if you have a [FONT=monospace]NIN_CFG[/FONT] of version [FONT=monospace]10[/FONT], the [FONT=monospace]WiiUGamepadSlot[/FONT] value is already defined, and it doesn't need to be initialized with some default value.
+So the expectation is that if you have a [FONT=monospace][ICODE]NIN_CFG[/ICODE][/FONT] of version [FONT=monospace][ICODE]10[/ICODE][/FONT], the [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] value is already defined, and it doesn't need to be initialized with some default value.
 
 [QUOTE]
-:yayu: This points to a liklihood that [FONT=monospace]Nintendont[/FONT] is being initialized with a [FONT=monospace]NIN_CFG[/FONT] of version [FONT=monospace]10[/FONT], but no (valid) [FONT=monospace]WiiUGamepadSlot[/FONT] is set.
+:yayu: This points to a liklihood that [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] is being initialized with a [FONT=monospace][ICODE]NIN_CFG[/ICODE][/FONT] of version [FONT=monospace][ICODE]10[/ICODE][/FONT], but no (valid) [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] is set.
 [/QUOTE]
 
-Here's the [FONT=monospace]nincfg.bin[/FONT] I'm using opened in [FONT=monospace]Nicoe[/FONT]. It's version [FONT=monospace]10[/FONT], and [FONT=monospace]WiiUGamepadSlot[/FONT] is 2 (this is 0-indexed so it's really the third controller slot).
+Here's the [FONT=monospace][ICODE]nincfg.bin[/ICODE][/FONT] I'm using opened in [FONT=monospace][ICODE]Nicoe[/ICODE][/FONT]. It's version [FONT=monospace][ICODE]10[/ICODE][/FONT], and [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] is 2 (this is 0-indexed so it's really the third controller slot).
 
 
 [IMG]https://user-images.githubusercontent.com/42226464/212789844-049dc5ae-b293-4271-9ca3-d7f2a9aadf95.pngimage[/IMG]
 
 
-This [FONT=monospace]nincfg.bin[/FONT] is a perfectly valid [FONT=monospace]Version[/FONT] 10 config file. Remember, launching a game from within [FONT=monospace]Nintendont[/FONT] results in the Wii U Gamepad being assigned to the third controller slot as expected.
+This [FONT=monospace][ICODE]nincfg.bin[/ICODE][/FONT] is a perfectly valid [FONT=monospace][ICODE]Version[/ICODE][/FONT] 10 config file. Remember, launching a game from within [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] results in the Wii U Gamepad being assigned to the third controller slot as expected.
 
 
 So maybe there's something about the injection / autoboot process that's going wrong? How do those injectors work anyway?
 
 [B][SIZE=7]Autoboot forwarding[/SIZE][/B]
 [QUOTE]
-:yayu: I'm going to focus on TeconMoon's Wii VC injector. There are other injectors (e.g. [FONT=monospace]UWUVCI[/FONT] and I believe [FONT=monospace]Wii U USB Helper[/FONT] has some injection capabilities), but I'm most familiar with TeconMoon's at the moment. Also TeconMoon's injector supports custom forwarders which is helpful for fixing the issue with [FONT=monospace]WiiUGamepadSlot[/FONT] and [FONT=monospace]autoboot[/FONT].
+:yayu: I'm going to focus on TeconMoon's Wii VC injector. There are other injectors (e.g. [FONT=monospace][ICODE]UWUVCI[/ICODE][/FONT] and I believe [FONT=monospace][ICODE]Wii U USB Helper[/ICODE][/FONT] has some injection capabilities), but I'm most familiar with TeconMoon's at the moment. Also TeconMoon's injector supports custom forwarders which is helpful for fixing the issue with [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] and [FONT=monospace][ICODE]autoboot[/ICODE][/FONT].
 [/QUOTE]
 
-There is a ton of detail I'm going to skip over related to Wii VC injection (mostly because I don't actually know all of the details), but for our purposes and at a very high level, an injector creates an installable file or files (likely WUP format) that you can install as a Title to your Wii U Home Menu (using e.g. WUP Installer) , which places an icon on your Wii U home page to launch some application (in our case it needs to launch the Wii VC with [FONT=monospace]Nintendont[/FONT] and a GameCube game).
+There is a ton of detail I'm going to skip over related to Wii VC injection (mostly because I don't actually know all of the details), but for our purposes and at a very high level, an injector creates an installable file or files (likely WUP format) that you can install as a Title to your Wii U Home Menu (using e.g. WUP Installer) , which places an icon on your Wii U home page to launch some application (in our case it needs to launch the Wii VC with [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] and a GameCube game).
 
 
-We need [I]something[/I] to tell [FONT=monospace]Nintendont[/FONT] to automatically launch a game instead of booting to the [FONT=monospace]Nintendont[/FONT] menu.
+We need [I]something[/I] to tell [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] to automatically launch a game instead of booting to the [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] menu.
 
 
 Maybe something like
@@ -211,40 +211,40 @@ Maybe something like
 [code]a simple forwarder for wii vc to autoboot a included game
 [/code]
 
-Enter [URL='https://github.com/FIX94/nintendont-autoboot-forwarder'][FONT=monospace]nintendont-autoboot-forwarder[/FONT][/URL] (that above comment is from the README).
+Enter [URL='https://github.com/FIX94/nintendont-autoboot-forwarder'][FONT=monospace][ICODE]nintendont-autoboot-forwarder[/ICODE][/FONT][/URL] (that above comment is from the README).
 
 
-Now I don't know all of the technical details, but from what I can gather, TeconMoon's injector "injects" this forwarder in the Wii VC so that when Wii VC is launched, it automatically starts [FONT=monospace]Nintendont[/FONT] via the autoboot forwarder (my terminology is probably not quite right here, but hopefully it's close enough).
+Now I don't know all of the technical details, but from what I can gather, TeconMoon's injector "injects" this forwarder in the Wii VC so that when Wii VC is launched, it automatically starts [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] via the autoboot forwarder (my terminology is probably not quite right here, but hopefully it's close enough).
 
 
-If you download the [URL='https://github.com/piratesephiroth/TeconMoonWiiVCInjector/blob/main/TeconMoon%27s%20WiiVC%20Injector/Resources/TOOLDIR.zip']TOOLDIR[/URL] from TeconMoon's injector source and unzip it, you'll find compiled [FONT=monospace]dol[/FONT] files from the [URL='https://github.com/FIX94/nintendont-autoboot-forwarder/releases/tag/v1.2']releases[/URL] page of the [FONT=monospace]nintendont-autoboot-forwarder[/FONT] repo.
+If you download the [URL='https://github.com/piratesephiroth/TeconMoonWiiVCInjector/blob/main/TeconMoon%27s%20WiiVC%20Injector/Resources/TOOLDIR.zip']TOOLDIR[/URL] from TeconMoon's injector source and unzip it, you'll find compiled [FONT=monospace][ICODE]dol[/ICODE][/FONT] files from the [URL='https://github.com/FIX94/nintendont-autoboot-forwarder/releases/tag/v1.2']releases[/URL] page of the [FONT=monospace][ICODE]nintendont-autoboot-forwarder[/ICODE][/FONT] repo.
 
 
-If we go look at the [URL='https://github.com/FIX94/nintendont-autoboot-forwarder/blob/master/source/main.c'][FONT=monospace]main.c[/FONT][/URL] file for the forwarder, we can see a couple of interesting things:
+If we go look at the [URL='https://github.com/FIX94/nintendont-autoboot-forwarder/blob/master/source/main.c'][FONT=monospace][ICODE]main.c[/ICODE][/FONT][/URL] file for the forwarder, we can see a couple of interesting things:
 
 [LIST=1]
 [*]
-It [URL='https://github.com/FIX94/nintendont-autoboot-forwarder/blob/master/source/main.c#L77']reads nincfg.bin[/URL] from the sd card (kind of like how [URL='https://github.com/FIX94/Nintendont/blob/master/loader/source/global.c#L328'][FONT=monospace]Nintendont[/FONT] does[/URL])
+It [URL='https://github.com/FIX94/nintendont-autoboot-forwarder/blob/master/source/main.c#L77']reads nincfg.bin[/URL] from the sd card (kind of like how [URL='https://github.com/FIX94/Nintendont/blob/master/loader/source/global.c#L328'][FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] does[/URL])
 
 [code=c]f = fopen("sd:/nincfg.bin","rb");
 [/code]
 [*]
-It [URL='https://github.com/FIX94/nintendont-autoboot-forwarder/blob/master/source/main.c#L85']loads the contents of the file into memory[/URL] (also similar to how [URL='https://github.com/FIX94/Nintendont/blob/master/loader/source/global.c#L333'][FONT=monospace]Nintendont[/FONT] does[/URL])
+It [URL='https://github.com/FIX94/nintendont-autoboot-forwarder/blob/master/source/main.c#L85']loads the contents of the file into memory[/URL] (also similar to how [URL='https://github.com/FIX94/Nintendont/blob/master/loader/source/global.c#L333'][FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] does[/URL])
 
 [code=c]fread(&nincfg,1,sizeof(NIN_CFG),f);
 [/code]
 [*]
-And then after potentially making some changes to the config (e.g. disabling all widescreen bits), it [URL='https://github.com/FIX94/nintendont-autoboot-forwarder/blob/master/source/main.c#L110']writes the config bytes back to some memory address[/URL] for [FONT=monospace]Nintendont[/FONT] to eventually [URL='https://github.com/FIX94/Nintendont/blob/master/loader/source/main.c#L573']read from[/URL].
+And then after potentially making some changes to the config (e.g. disabling all widescreen bits), it [URL='https://github.com/FIX94/nintendont-autoboot-forwarder/blob/master/source/main.c#L110']writes the config bytes back to some memory address[/URL] for [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] to eventually [URL='https://github.com/FIX94/Nintendont/blob/master/loader/source/main.c#L573']read from[/URL].
 
 [code=c]memcpy(CMD_ADDR+full_fPath_len, &nincfg, sizeof(NIN_CFG));
 [/code]
 [/LIST]
 [QUOTE]
-:yayu: Notice how we're consistently using [FONT=monospace]sizeof(NIN_CFG)[/FONT] to determine how many bytes to read in and out of memory. This is the key for why [FONT=monospace]Nintendont[/FONT] is failing to load [FONT=monospace]WiiUGamepadSlot[/FONT] properly in [FONT=monospace]autoboot[/FONT] mode.
+:yayu: Notice how we're consistently using [FONT=monospace][ICODE]sizeof(NIN_CFG)[/ICODE][/FONT] to determine how many bytes to read in and out of memory. This is the key for why [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] is failing to load [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] properly in [FONT=monospace][ICODE]autoboot[/ICODE][/FONT] mode.
 [/QUOTE]
 [LIST]
 [*]
-[FONT=monospace]nintendont-autoboot-forwarder[/FONT] also has a [URL='https://github.com/FIX94/nintendont-autoboot-forwarder/blob/master/source/CommonConfig.h'][FONT=monospace]/source/CommonConfig.h[/FONT][/URL] file that looks awfully familiar.
+[FONT=monospace][ICODE]nintendont-autoboot-forwarder[/ICODE][/FONT] also has a [URL='https://github.com/FIX94/nintendont-autoboot-forwarder/blob/master/source/CommonConfig.h'][FONT=monospace][ICODE]/source/CommonConfig.h[/ICODE][/FONT][/URL] file that looks awfully familiar.
 
 [code=c]
 #ifndef __COMMON_CONFIG_H__
@@ -278,54 +278,54 @@ typedef struct NIN_CFG
 [/code]
 [/LIST]
 
-Yes that is the same (almost) [FONT=monospace]CommonConfig.h[/FONT] file that [FONT=monospace]Nintendont[/FONT] has! In fact, you can tell it was probably copied from a previous version of [FONT=monospace]Nintendont[/FONT] because it has some commented out lines that reference header files in [FONT=monospace]Nintendont[/FONT] that we don't have here.
+Yes that is the same (almost) [FONT=monospace][ICODE]CommonConfig.h[/ICODE][/FONT] file that [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] has! In fact, you can tell it was probably copied from a previous version of [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] because it has some commented out lines that reference header files in [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] that we don't have here.
 
 
 There are a few things different about this file though:
 
 [LIST=1]
 [*]
-It's out of date. This file supports [FONT=monospace]NIN_CFG[/FONT] only up to version [FONT=monospace]8[/FONT].
+It's out of date. This file supports [FONT=monospace][ICODE]NIN_CFG[/ICODE][/FONT] only up to version [FONT=monospace][ICODE]8[/ICODE][/FONT].
 
 [code=c]#define NIN_CFG_VERSION        0x00000008
 [/code]
 
-But the version in [FONT=monospace]Nintendont[/FONT] is [FONT=monospace]10[/FONT].
+But the version in [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] is [FONT=monospace][ICODE]10[/ICODE][/FONT].
 
 [code=c]#define NIN_CFG_VERSION        0x0000000A
 [/code]
 [*]
-The [FONT=monospace]NIN_CFG[/FONT] struct is a different size. It's 1 unsigned int (4 bytes if I'm not mistaken that Wii U has a 32-bit processor) shorter than the [FONT=monospace]NIN_CFG[/FONT] defined in [FONT=monospace]Nintendont[/FONT]. And that unsigned int is [FONT=monospace]WiiUGamepadSlot[/FONT].
+The [FONT=monospace][ICODE]NIN_CFG[/ICODE][/FONT] struct is a different size. It's 1 unsigned int (4 bytes if I'm not mistaken that Wii U has a 32-bit processor) shorter than the [FONT=monospace][ICODE]NIN_CFG[/ICODE][/FONT] defined in [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT]. And that unsigned int is [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT].
 [/LIST]
 [B][SIZE=7]The problem[/SIZE][/B]
 
-Now that we're (somewhat?) up to speed on configuring and autobooting [FONT=monospace]Nintendont[/FONT], we can start to see what the source of the problem is. There are pieces missing in both [FONT=monospace]Nintendont[/FONT] and [FONT=monospace]nintendont-autoboot-forwarder[/FONT] that, together, cause [FONT=monospace]WiiUGamepadSlot[/FONT] to be broken in autoboot mode.
+Now that we're (somewhat?) up to speed on configuring and autobooting [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT], we can start to see what the source of the problem is. There are pieces missing in both [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] and [FONT=monospace][ICODE]nintendont-autoboot-forwarder[/ICODE][/FONT] that, together, cause [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] to be broken in autoboot mode.
 
 [QUOTE]
-:yayu: I'm going to refer to [FONT=monospace]NIN_CFG[/FONT] in [FONT=monospace]Nintendont[/FONT] as [FONT=monospace]NIN_CFG_10[/FONT] and the one in [FONT=monospace]nintendont-autoboot-forwarder[/FONT] as [FONT=monospace]NIN_CFG_8[/FONT].
+:yayu: I'm going to refer to [FONT=monospace][ICODE]NIN_CFG[/ICODE][/FONT] in [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] as [FONT=monospace][ICODE]NIN_CFG_10[/ICODE][/FONT] and the one in [FONT=monospace][ICODE]nintendont-autoboot-forwarder[/ICODE][/FONT] as [FONT=monospace][ICODE]NIN_CFG_8[/ICODE][/FONT].
 [/QUOTE]
-[B][SIZE=5][FONT=monospace]nintendont-autoboot-forwarder[/FONT][/SIZE][/B]
+[B][SIZE=5][FONT=monospace][ICODE]nintendont-autoboot-forwarder[/ICODE][/FONT][/SIZE][/B]
 [LIST=1]
-[*]When [FONT=monospace]nintendont-autoboot-forwarder[/FONT] reads [FONT=monospace]nincfg.bin[/FONT] into memory, it reads [FONT=monospace]sizeof(NIN_CFG_8)[/FONT] bytes of the file (missing the last 4 bytes of [FONT=monospace]WiiUGamepadSlot[/FONT]).
-[*]When [FONT=monospace]nintendont-autoboot-forwarder[/FONT] copies [FONT=monospace]NIN_CFG[/FONT] for [FONT=monospace]Nintendont[/FONT] to read, it writes [FONT=monospace]sizeof(NIN_CFG_8)[/FONT] bytes into memory (again, missing the [FONT=monospace]WiiUGamepadSlot[/FONT] bytes)
-[*]Because the version of the file that [FONT=monospace]nintendont-autoboot-fowarder[/FONT] loaded is [FONT=monospace]10[/FONT], the Version property of the [FONT=monospace]NIN_CFG[/FONT] struct that it writes to memory is [FONT=monospace]10[/FONT] (even though it's missing the expected [FONT=monospace]WiiUGamepadSlot[/FONT] bytes).
+[*]When [FONT=monospace][ICODE]nintendont-autoboot-forwarder[/ICODE][/FONT] reads [FONT=monospace][ICODE]nincfg.bin[/ICODE][/FONT] into memory, it reads [FONT=monospace][ICODE]sizeof(NIN_CFG_8)[/ICODE][/FONT] bytes of the file (missing the last 4 bytes of [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT]).
+[*]When [FONT=monospace][ICODE]nintendont-autoboot-forwarder[/ICODE][/FONT] copies [FONT=monospace][ICODE]NIN_CFG[/ICODE][/FONT] for [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] to read, it writes [FONT=monospace][ICODE]sizeof(NIN_CFG_8)[/ICODE][/FONT] bytes into memory (again, missing the [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] bytes)
+[*]Because the version of the file that [FONT=monospace][ICODE]nintendont-autoboot-fowarder[/ICODE][/FONT] loaded is [FONT=monospace][ICODE]10[/ICODE][/FONT], the Version property of the [FONT=monospace][ICODE]NIN_CFG[/ICODE][/FONT] struct that it writes to memory is [FONT=monospace][ICODE]10[/ICODE][/FONT] (even though it's missing the expected [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] bytes).
 [/LIST]
-[B][SIZE=5][FONT=monospace]Nintendont[/FONT][/SIZE][/B]
+[B][SIZE=5][FONT=monospace][ICODE]Nintendont[/ICODE][/FONT][/SIZE][/B]
 [LIST=1]
-[*]When [FONT=monospace]Nintendont[/FONT] loads [FONT=monospace]NIN_CFG[/FONT] from memory in autoboot mode, it copies [FONT=monospace]sizeof(NIN_CFG_10)[/FONT] bytes from memory. That means it's copying an extra 4 bytes that were never written by the forwarder. When this happens, it is [FONT=monospace]UNDEFINED BEHAVIOR[/FONT] (scary) which basically means "who knows what happens". I think what's most likely is that whatever bytes are in memory at those next memory addresses are copied into the 4 bytes of the [FONT=monospace]WiiUGamepadSlot[/FONT], so it likely is some value between 0 and 4,294,967,295. Now I don't think [FONT=monospace]Nintendont[/FONT] is really equiped to handle a couple billion controllers, so it breaks in unexpected ways (like causing the Wii U Gamepad to be disabled all together).
-[*]When [FONT=monospace]Nintendont[/FONT] goes to apply a backwards compatibility fix (and set [FONT=monospace]WiiUGamepadSlot[/FONT] to something more sane, like 0) it sees that the config file is version [FONT=monospace]10[/FONT], so it skips that logic.
+[*]When [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] loads [FONT=monospace][ICODE]NIN_CFG[/ICODE][/FONT] from memory in autoboot mode, it copies [FONT=monospace][ICODE]sizeof(NIN_CFG_10)[/ICODE][/FONT] bytes from memory. That means it's copying an extra 4 bytes that were never written by the forwarder. When this happens, it is [FONT=monospace][ICODE]UNDEFINED BEHAVIOR[/ICODE][/FONT] (scary) which basically means "who knows what happens". I think what's most likely is that whatever bytes are in memory at those next memory addresses are copied into the 4 bytes of the [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT], so it likely is some value between 0 and 4,294,967,295. Now I don't think [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] is really equiped to handle a couple billion controllers, so it breaks in unexpected ways (like causing the Wii U Gamepad to be disabled all together).
+[*]When [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] goes to apply a backwards compatibility fix (and set [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] to something more sane, like 0) it sees that the config file is version [FONT=monospace][ICODE]10[/ICODE][/FONT], so it skips that logic.
 [/LIST]
 
-So in autoboot mode, [FONT=monospace]Nintendont[/FONT] ends up with a [FONT=monospace]NIN_CFG[/FONT] that has garbage bytes for [FONT=monospace]WiiUGamepadSlot[/FONT]. If we can fix this, I can accomplish all of my goals, and finally beat my time trial record on Baby Park from 10 years ago.
+So in autoboot mode, [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] ends up with a [FONT=monospace][ICODE]NIN_CFG[/ICODE][/FONT] that has garbage bytes for [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT]. If we can fix this, I can accomplish all of my goals, and finally beat my time trial record on Baby Park from 10 years ago.
 
 [B][SIZE=7]The fix(es)[/SIZE]
 
 [SIZE=6]In Nintendont (PR [URL='https://github.com/FIX94/Nintendont/pull/1054']here[/URL])[/SIZE][/B]
 
-There's already a workaround in place that sets the [FONT=monospace]WiiUGamepadSlot[/FONT] to 0 in autoboot mode. But we want to be able to actually use [FONT=monospace]WiiUGamepadSlot[/FONT] in autoboot mode, so we need to replace that. But we also don't want to break the Wii U Gamepad functionality for folks with older [FONT=monospace]nincfg.bin[/FONT] files.
+There's already a workaround in place that sets the [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] to 0 in autoboot mode. But we want to be able to actually use [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] in autoboot mode, so we need to replace that. But we also don't want to break the Wii U Gamepad functionality for folks with older [FONT=monospace][ICODE]nincfg.bin[/ICODE][/FONT] files.
 
 [LIST=1]
-[*][URL='https://github.com/FIX94/Nintendont/pull/1054/files#diff-f2109090877968dea3f29f2c56c213fe306d2e6d935a8f88c11edcf3472d3007R465']Add a fix[/URL] in the backwards compatibility code to set [FONT=monospace]WiiUGamepadSlot[/FONT] to 0 if we detect that it's invalid (likely because we loaded a [FONT=monospace]NIN_CFG[/FONT] that is too small) even if the config that was loaded is version 10.
+[*][URL='https://github.com/FIX94/Nintendont/pull/1054/files#diff-f2109090877968dea3f29f2c56c213fe306d2e6d935a8f88c11edcf3472d3007R465']Add a fix[/URL] in the backwards compatibility code to set [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] to 0 if we detect that it's invalid (likely because we loaded a [FONT=monospace][ICODE]NIN_CFG[/ICODE][/FONT] that is too small) even if the config that was loaded is version 10.
 [code=c]if (ncfg->Version == 10)
 {
   // NIN_CFG with version 10 may have loaded
@@ -337,38 +337,38 @@ There's already a workaround in place that sets the [FONT=monospace]WiiUGamepadS
   }
 }
 [/code]
-[*][URL='https://github.com/FIX94/Nintendont/pull/1054/files#diff-e3e6901e50a638c5361e77f316c581221b73861ce8f28d7fb933f2c911f0cec8R113']Remove the workaround fix[/URL] for autoboot mode while retaining the logic to move the [FONT=monospace]WiiUGamepadSlot[/FONT] up to the second controller slot if there's an [FONT=monospace]HIDPad[/FONT] plugged in.
+[*][URL='https://github.com/FIX94/Nintendont/pull/1054/files#diff-e3e6901e50a638c5361e77f316c581221b73861ce8f28d7fb933f2c911f0cec8R113']Remove the workaround fix[/URL] for autoboot mode while retaining the logic to move the [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] up to the second controller slot if there's an [FONT=monospace][ICODE]HIDPad[/ICODE][/FONT] plugged in.
 [/LIST]
 
-With [FONT=monospace]Nintendont[/FONT] updated to allow [FONT=monospace]WiiUGamepadSlot[/FONT] even in autoboot mode, we can upgrade [FONT=monospace]nintendont-autoboot-forwarder[/FONT] with some fixes.
+With [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] updated to allow [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] even in autoboot mode, we can upgrade [FONT=monospace][ICODE]nintendont-autoboot-forwarder[/ICODE][/FONT] with some fixes.
 
 [B][SIZE=6]In nintendont-autoboot-forwarder (PR [URL='https://github.com/FIX94/nintendont-autoboot-forwarder/pull/7']here[/URL])[/SIZE][/B]
 [LIST=1]
-[*][URL='https://github.com/FIX94/nintendont-autoboot-forwarder/pull/7/files#diff-c70cd86e436046e94ece844e7dd3307d1159037f77dcba78090417d5e43ccd99L1']Upgrade forwarder[/URL] to support version [FONT=monospace]10[/FONT] of [FONT=monospace]NIN_CFG[/FONT] struct (literally a copy and paste of the [URL='https://github.com/FIX94/Nintendont/blob/master/common/include/CommonConfig.h']same file[/URL] from [FONT=monospace]Nintendont[/FONT]).
+[*][URL='https://github.com/FIX94/nintendont-autoboot-forwarder/pull/7/files#diff-c70cd86e436046e94ece844e7dd3307d1159037f77dcba78090417d5e43ccd99L1']Upgrade forwarder[/URL] to support version [FONT=monospace][ICODE]10[/ICODE][/FONT] of [FONT=monospace][ICODE]NIN_CFG[/ICODE][/FONT] struct (literally a copy and paste of the [URL='https://github.com/FIX94/Nintendont/blob/master/common/include/CommonConfig.h']same file[/URL] from [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT]).
 [*][URL='https://github.com/FIX94/nintendont-autoboot-forwarder/pull/7/files#diff-7aaf2a1060a633eda3e75a71e84bdf8379c109b66a897e5094c655c602b6f71fR104']Set the version[/URL] of the config that is actually being written by the forwarder rather than the version specified in the file, because if the forwarder isn't up to date with the config file version, it's really writing an older version to memory (this isn't strictly necessary, but I think it's a good improvement to have going forward).
 [/LIST]
 [B][SIZE=6]In the injectors[/SIZE][/B]
 
-Once those two changes for [FONT=monospace]Nintendont[/FONT] and the forwarder are merged and released, the injectors need to be updated to use the newer version of the forwarder. I'm planning on reaching out to the developers of TeconMoon's injector, UWUVCI, and Wii U USB Helper once we have newer releases of [FONT=monospace]Nintendont[/FONT] and [FONT=monospace]nintendont-autoboot-forwarder[/FONT] so those tools can get updated.
+Once those two changes for [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] and the forwarder are merged and released, the injectors need to be updated to use the newer version of the forwarder. I'm planning on reaching out to the developers of TeconMoon's injector, UWUVCI, and Wii U USB Helper once we have newer releases of [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] and [FONT=monospace][ICODE]nintendont-autoboot-forwarder[/ICODE][/FONT] so those tools can get updated.
 
 [QUOTE]
-:yayu: TeconMoon's injector supports custom [FONT=monospace]main.dol[/FONT] files when injecting. So if you build the [FONT=monospace]nintendont-autoboot-forwarder[/FONT] from [URL='https://github.com/ghostserverd/nintendont-autoboot-forwarder/tree/master']my fork[/URL], you can choose that [FONT=monospace]main.dol[/FONT] in the injection settings to avoid having to wait for the tool to officially update. Really awesome feature from that injector. Other injectors may have that capability as well, but I haven't tried them.
+:yayu: TeconMoon's injector supports custom [FONT=monospace][ICODE]main.dol[/ICODE][/FONT] files when injecting. So if you build the [FONT=monospace][ICODE]nintendont-autoboot-forwarder[/ICODE][/FONT] from [URL='https://github.com/ghostserverd/nintendont-autoboot-forwarder/tree/master']my fork[/URL], you can choose that [FONT=monospace][ICODE]main.dol[/ICODE][/FONT] in the injection settings to avoid having to wait for the tool to officially update. Really awesome feature from that injector. Other injectors may have that capability as well, but I haven't tried them.
 [/QUOTE]
 [B][SIZE=7]Conclusion and request for help[/SIZE][/B]
 
-So there you have it. With those changes to [FONT=monospace]Nintendont[/FONT] and [FONT=monospace]nintendont-autoboot-forwarder[/FONT] (and using the custom [FONT=monospace]main.dol[/FONT] for the forwarder with TeconMoon's injector), I'm able to accomplish all of my goals for my Wii-U-as-GameCube. I want to make these changes available to the community so other folks can use [FONT=monospace]WiiUGamepadSlot[/FONT] with injected games.
+So there you have it. With those changes to [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] and [FONT=monospace][ICODE]nintendont-autoboot-forwarder[/ICODE][/FONT] (and using the custom [FONT=monospace][ICODE]main.dol[/ICODE][/FONT] for the forwarder with TeconMoon's injector), I'm able to accomplish all of my goals for my Wii-U-as-GameCube. I want to make these changes available to the community so other folks can use [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] with injected games.
 
 
 I'm not really sure who maintains these projects anymore. They don't have a lot of activity on them these days. But I'm looking for someone to review these two pull requests and hopefully approve them, or provide feedback so I can make any necessary changes to get them merged.
 
 [LIST=1]
-[*][FONT=monospace]Nintendont[/FONT] PR is here
+[*][FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] PR is here
 [/LIST]
 
 https://github.com/FIX94/Nintendont/pull/1054
 
 [LIST]
-[*][FONT=monospace]nintendont-autoboot-forwarder[/FONT] PR is here
+[*][FONT=monospace][ICODE]nintendont-autoboot-forwarder[/ICODE][/FONT] PR is here
 [/LIST]
 
 https://github.com/FIX94/nintendont-autoboot-forwarder/pull/7
