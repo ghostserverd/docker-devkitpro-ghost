@@ -105,6 +105,7 @@ When you launch [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT], change any set
 [QUOTE]
 :yayu: There is also a tool called [URL='https://github.com/libertyernie/Nicoe']Nicoe[/URL] which can read and modify a [FONT=monospace][ICODE]nincfg.bin[/ICODE][/FONT] file from a Windows PC (and without having to launch [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] on a Wii U).
 [/QUOTE]
+
 [B][SIZE=6]Initializing NIN_CFG[/SIZE][/B]
 
 The [FONT=monospace][ICODE]NIN_CFG[/ICODE][/FONT] struct [URL='https://github.com/FIX94/Nintendont/blob/master/common/include/CommonConfig.h#L12']defines[/URL] the settings and format for configuring [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT].
@@ -156,6 +157,7 @@ In [FONT=monospace][ICODE]autoboot[/ICODE][/FONT] mode, whatever is initializing
 
 [code=c]memcpy(ncfg, argv[1], sizeof(NIN_CFG));
 [/code]
+
 [QUOTE]
 :yayu: This is another critical difference in functionality that hints at why [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] works in [FONT=monospace][ICODE]normal[/ICODE][/FONT] mode but not [FONT=monospace][ICODE]autoboot[/ICODE][/FONT] mode.
 [/QUOTE]
@@ -187,7 +189,7 @@ So the expectation is that if you have a [FONT=monospace][ICODE]NIN_CFG[/ICODE][
 Here's the [FONT=monospace][ICODE]nincfg.bin[/ICODE][/FONT] I'm using opened in [FONT=monospace][ICODE]Nicoe[/ICODE][/FONT]. It's version [FONT=monospace][ICODE]10[/ICODE][/FONT], and [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] is 2 (this is 0-indexed so it's really the third controller slot).
 
 
-[IMG]https://user-images.githubusercontent.com/42226464/212789844-049dc5ae-b293-4271-9ca3-d7f2a9aadf95.pngimage[/IMG]
+[ATTACH type="full"]347799[/ATTACH]
 
 
 This [FONT=monospace][ICODE]nincfg.bin[/ICODE][/FONT] is a perfectly valid [FONT=monospace][ICODE]Version[/ICODE][/FONT] 10 config file. Remember, launching a game from within [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] results in the Wii U Gamepad being assigned to the third controller slot as expected.
@@ -304,6 +306,7 @@ Now that we're (somewhat?) up to speed on configuring and autobooting [FONT=mono
 [QUOTE]
 :yayu: I'm going to refer to [FONT=monospace][ICODE]NIN_CFG[/ICODE][/FONT] in [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] as [FONT=monospace][ICODE]NIN_CFG_10[/ICODE][/FONT] and the one in [FONT=monospace][ICODE]nintendont-autoboot-forwarder[/ICODE][/FONT] as [FONT=monospace][ICODE]NIN_CFG_8[/ICODE][/FONT].
 [/QUOTE]
+
 [B][SIZE=5][FONT=monospace][ICODE]nintendont-autoboot-forwarder[/ICODE][/FONT][/SIZE][/B]
 [LIST=1]
 [*]When [FONT=monospace][ICODE]nintendont-autoboot-forwarder[/ICODE][/FONT] reads [FONT=monospace][ICODE]nincfg.bin[/ICODE][/FONT] into memory, it reads [FONT=monospace][ICODE]sizeof(NIN_CFG_8)[/ICODE][/FONT] bytes of the file (missing the last 4 bytes of [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT]).
@@ -316,7 +319,7 @@ Now that we're (somewhat?) up to speed on configuring and autobooting [FONT=mono
 [*]When [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] goes to apply a backwards compatibility fix (and set [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] to something more sane, like 0) it sees that the config file is version [FONT=monospace][ICODE]10[/ICODE][/FONT], so it skips that logic.
 [/LIST]
 
-So in autoboot mode, [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] ends up with a [FONT=monospace][ICODE]NIN_CFG[/ICODE][/FONT] that has garbage bytes for [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT]. If we can fix this, I can accomplish all of my goals, and finally beat my time trial record on Baby Park from 10 years ago.
+So in autoboot mode, [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] ends up with a [FONT=monospace][ICODE]NIN_CFG[/ICODE][/FONT] that has garbage bytes for [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT]. If we can fix this, I can accomplish all of my goals, and finally beat my time trial record on Baby Park from 20 years ago.
 
 [B][SIZE=7]The fix(es)[/SIZE]
 
@@ -354,6 +357,7 @@ Once those two changes for [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] and 
 [QUOTE]
 :yayu: TeconMoon's injector supports custom [FONT=monospace][ICODE]main.dol[/ICODE][/FONT] files when injecting. So if you build the [FONT=monospace][ICODE]nintendont-autoboot-forwarder[/ICODE][/FONT] from [URL='https://github.com/ghostserverd/nintendont-autoboot-forwarder/tree/master']my fork[/URL], you can choose that [FONT=monospace][ICODE]main.dol[/ICODE][/FONT] in the injection settings to avoid having to wait for the tool to officially update. Really awesome feature from that injector. Other injectors may have that capability as well, but I haven't tried them.
 [/QUOTE]
+
 [B][SIZE=7]Conclusion and request for help[/SIZE][/B]
 
 So there you have it. With those changes to [FONT=monospace][ICODE]Nintendont[/ICODE][/FONT] and [FONT=monospace][ICODE]nintendont-autoboot-forwarder[/ICODE][/FONT] (and using the custom [FONT=monospace][ICODE]main.dol[/ICODE][/FONT] for the forwarder with TeconMoon's injector), I'm able to accomplish all of my goals for my Wii-U-as-GameCube. I want to make these changes available to the community so other folks can use [FONT=monospace][ICODE]WiiUGamepadSlot[/ICODE][/FONT] with injected games.
