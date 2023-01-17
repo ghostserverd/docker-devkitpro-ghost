@@ -17,7 +17,7 @@ A medium-deep dive and explanation for these changes is below.
 
 # Background
 
-My personal goal for my Wii U is to essentially turn it into a Gamecube. I want to play all of my old GameCube games (which I still physically have) with a native HDMI output and newer controllers (Wii U Pro Controllers).
+My personal goal for my Wii U is to essentially turn it into a Gamecube. I want to play all of my old GameCube games (which I still physically have in a box in a closet upstairs) with a native HDMI output and newer controllers (Wii U Pro Controllers).
 
 The requirements I set for myself for this project are:
 
