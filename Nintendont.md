@@ -146,9 +146,9 @@ So the expectation is that if you have a `NIN_CFG` of version `10`, the `WiiUGam
 
 > 📓 This points to a liklihood that `Nintendont` is being initialized with a `NIN_CFG` of version `10`, but no (valid) `WiiUGamepadSlot` is set.
 
-Here's the `nincfg.bin` I'm using. It's version `10`, and `WiiUGamepadSlot` is 2 (this is 0-indexed so it's really the third controller slot).
+Here's the `nincfg.bin` I'm using opened in `Nicoe`. It's version `10`, and `WiiUGamepadSlot` is 2 (this is 0-indexed so it's really the third controller slot).
 
-!!! ADD IMAGE !!!
+![image](https://user-images.githubusercontent.com/42226464/212789844-049dc5ae-b293-4271-9ca3-d7f2a9aadf95.png)
 
 This `nincfg.bin` is a perfectly valid `Version` 10 config file. Remember, launching a game from within `Nintendont` results in the Wii U Gamepad being assigned to the third controller slot as expected.
 
