@@ -32,7 +32,7 @@ This means that in order to accomplish requirement 2, I need to be able to be ab
 After setting up my Wii U with Tiramisu and installing `Nintendont`, I discovered 2 things:
 
 1. 🥳 There is a setting in `Nintendont` called `WiiUGamepadSlot` to configure which controller slot the Wii U Gamepad occupies.
-2. 😞 The setting does not work for games installed with an injector.
+2. 😞 The setting does not work for games installed with an injector and launched from the Wii U Home Menu.
 
 I did notice that when launching `Nintendont` first and then starting a game from within `Nintendont`, the Wii U Gamepad would be in the slot defined by `WiiUGamepadSlot`. So that setting worked. It only stopped working when launching a game injected and then installed to the Wii U Home Menu.
 
